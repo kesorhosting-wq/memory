@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Memory</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg1: #120814;
+      --bg2: #2a1030;
+      --bg3: #4c1b46;
+      --glass: rgba(255,255,255,0.10);
+      --glass-border: rgba(255,255,255,0.16);
+      --text: #fff5fa;
+      --soft: rgba(255,245,250,0.78);
+      --pink1: #ff5fa2;
+      --pink2: #ff8db8;
+      --pink3: #ffd1e3;
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255, 120, 170, 0.20), transparent 22%),
+        radial-gradient(circle at 80% 10%, rgba(255, 220, 235, 0.10), transparent 20%),
+        radial-gradient(circle at 50% 90%, rgba(255, 90, 140, 0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg1), var(--bg2), var(--bg3));
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .page {
+      min-height: 100vh;
+      width: 100%;
+      position: relative;
+      z-index: 2;
+    }
+
+    .center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .stars, .hearts {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.8);
+      animation: twinkle 3s infinite ease-in-out;
+    }
+
+    .heart {
+      position: absolute;
+      bottom: -40px;
+      opacity: 0.28;
+      animation: rise linear forwards;
+      user-select: none;
+    }
+
+    .gate-card {
+      width: min(92vw, 560px);
+      padding: 34px;
+      border-radius: 28px;
+      background: rgba(255,255,255,0.09);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: fadeUp 0.9s ease;
+    }
+
+    .gate-card h1 {
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .gate-card .lead {
+      color: var(--soft);
+      line-height: 1.7;
+      font-size: 1rem;
+      margin-bottom: 22px;
+    }
+
+    .date-preview {
+      display: inline-block;
+      margin-bottom: 18px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--pink3);
+      font-weight: 600;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .input-row input {
+      flex: 1;
+      min-width: 220px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      outline: none;
+      background: rgba(255,255,255,0.95);
+      color: #2e1630;
+      font-size: 1rem;
+    }
+
+    .input-row button {
+      padding: 16px 22px;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, var(--pink1), var(--pink2));
+      box-shadow: 0 10px 24px rgba(255, 95, 162, 0.35);
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .input-row button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(255, 95, 162, 0.42);
+    }
+
+    .error {
+      min-height: 26px;
+      margin-top: 14px;
+      color: #ffd6e4;
+      font-weight: 600;
+    }
+
+    .main-wrap {
+      width: min(1200px, 92vw);
+      margin: 0 auto;
+      padding: 42px 0 60px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 28px;
+      animation: fadeUp 1s ease;
+    }
+
+    .hero .mini {
+      display: inline-block;
+      margin-bottom: 16px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--pink3);
+      font-size: 0.92rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      line-height: 1.04;
+      margin-bottom: 10px;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.28);
+    }
+
+    .hero p {
+      color: var(--soft);
+      font-size: 1.04rem;
+      max-width: 760px;
+      margin: 0 auto 8px;
+      line-height: 1.7;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 28px 0 32px;
+      animation: fadeUp 1.15s ease;
+    }
+
+    .stat {
+      padding: 24px;
+      border-radius: 24px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .stat .num {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .stat .label {
+      color: var(--soft);
+      font-size: 0.98rem;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 12px 0 18px;
+      flex-wrap: wrap;
+    }
+
+    .section-head h2 {
+      font-size: 1.5rem;
+    }
+
+    .section-head .small {
+      color: var(--soft);
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+      transform: translateY(22px) scale(0.98);
+      opacity: 0;
+      animation: cardIn 0.8s ease forwards;
+      cursor: pointer;
+      isolation: isolate;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 45%;
+      background: linear-gradient(to top, rgba(0,0,0,0.45), transparent);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .card img,
+    .card video {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      display: block;
+      background: #1a101f;
+      transition: transform 0.45s ease;
+    }
+
+    .card:hover img,
+    .card:hover video {
+      transform: scale(1.06);
+    }
+
+    .card:hover {
+      transform: translateY(-6px) scale(1.01);
+      transition: 0.28s ease;
+    }
+
+    .badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 3;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.42);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 0.82rem;
+      font-weight: 700;
+      backdrop-filter: blur(6px);
+    }
+
+    .caption {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 14px;
+      z-index: 3;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .caption .name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .caption .type {
+      font-size: 0.82rem;
+      color: #ffe0eb;
+      white-space: nowrap;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(7, 3, 10, 0.88);
+      z-index: 9999;
+    }
+
+    .lightbox.active {
+      display: flex;
+    }
+
+    .lightbox-inner {
+      position: relative;
+      width: min(1100px, 95vw);
+      max-height: 90vh;
+      animation: popIn 0.22s ease;
+    }
+
+    .lightbox img,
+    .lightbox video {
+      width: 100%;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 24px;
+      background: #000;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: -12px;
+      right: -4px;
+      width: 46px;
+      height: 46px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(135deg, var(--pink1), var(--pink2));
+      box-shadow: 0 10px 24px rgba(255, 95, 162, 0.35);
+    }
+
+    .empty {
+      padding: 28px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--soft);
+      text-align: center;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes cardIn {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes rise {
+      0% {
+        transform: translateY(0) scale(0.8) rotate(0deg);
+        opacity: 0;
+      }
+      15% {
+        opacity: 0.28;
+      }
+      100% {
+        transform: translateY(-115vh) scale(1.25) rotate(18deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes twinkle {
+      0%, 100% {
+        opacity: 0.2;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.8);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .card img,
+      .card video {
+        height: 260px;
+      }
+
+      .gate-card {
+        padding: 26px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+  <div class="hearts" id="hearts"></div>
+
+  <section id="gatePage" class="page center">
+    <div class="gate-card">
+      <div class="date-preview">Anniversary · 08/05/2023</div>
+      <h1>Our Memory</h1>
+      <p class="lead">
+        Enter our anniversary date to unlock every memory.<br>
+        Photos, videos, and all the little moments we saved together.
+      </p>
+
+      <div class="input-row">
+        <input id="anniversaryInput" placeholder="08,05,2023" autocomplete="off" />
+        <button id="openBtn">Open Memory</button>
+      </div>
+
+      <div class="error" id="errorMsg"></div>
+    </div>
+  </section>
+
+  <section id="mainPage" class="page hidden">
+    <div class="main-wrap">
+      <div class="hero">
+        <div class="mini">Since 08/05/2023</div>
+        <h1>Our Memory</h1>
+        <p>Every photo, every video, every moment of us.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="num">951</div>
+          <div class="label">days together</div>
+        </div>
+        <div class="stat">
+          <div class="num">99</div>
+          <div class="label">photos saved</div>
+        </div>
+        <div class="stat">
+          <div class="num">66</div>
+          <div class="label">videos saved</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h2>Our Gallery</h2>
+        <div class="small">165 memories</div>
+      </div>
+
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </section>
+
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-inner" id="lightboxInner">
+      <button class="close-btn" id="closeBtn">×</button>
+    </div>
+  </div>
+
+  <script>
+    const REQUIRED_DATE = "08,05,2023";
+    const mediaItems = [{"type": "image", "src": "media/0301f991070678076cbbe8515585edc8.jpeg"}, {"type": "image", "src": "media/0418b8cc00282b3bb374f5faf1976e44.jpeg"}, {"type": "image", "src": "media/0f9221b6b31fc58d7c81747116e540b6.jpeg"}, {"type": "video", "src": "media/1283640674632287849.mp4"}, {"type": "image", "src": "media/235ee9496eb3e3b9af35fd14ddb15f2d.jpeg"}, {"type": "image", "src": "media/29ca3a433fa3c03f8936348cff558cd2.jpeg"}, {"type": "image", "src": "media/46138de8b03130fcfae8fbe1a1add8ae.jpeg"}, {"type": "image", "src": "media/508e710bad7896e0b6f319352078a6ae.jpeg"}, {"type": "image", "src": "media/516ad04e0641fedd2f97aff8fdbea7cb.jpeg"}, {"type": "image", "src": "media/51f33cca81be356d65e1eb18f02264b4.jpeg"}, {"type": "image", "src": "media/635d1cee26ae8bec8667769645835fe5.jpeg"}, {"type": "video", "src": "media/663d05bdc2351bbabaea88560d162790.mp4"}, {"type": "video", "src": "media/6E265972-F7C3-42EE-90BF-9AE3BFF69FCD.mp4"}, {"type": "image", "src": "media/71fa8a08f135b10ae6bbd56601a6ab66.jpeg"}, {"type": "video", "src": "media/8a9f53e22147ccbe9a16157af513244a.mp4"}, {"type": "image", "src": "media/b12d000d02d96def9f9c9c15faffa82d.jpeg"}, {"type": "video", "src": "media/bf23c4e8d359393ab1f5f2f045b1c634.mp4"}, {"type": "image", "src": "media/c7175523c9ed169313145d4522aad3f6.jpeg"}, {"type": "image", "src": "media/c995a15f31c37315a272d786b4c58c22.jpeg"}, {"type": "image", "src": "media/camphoto_1804928587.jpg"}, {"type": "video", "src": "media/e4894cd1258ee5f5e48acae3a9cd970f.mp4"}, {"type": "image", "src": "media/IMG_3002.PNG"}, {"type": "video", "src": "media/IMG_3017.MP4"}, {"type": "image", "src": "media/IMG_3018.JPEG"}, {"type": "image", "src": "media/IMG_3019.JPEG"}, {"type": "image", "src": "media/IMG_3020.JPEG"}, {"type": "image", "src": "media/IMG_3021.JPEG"}, {"type": "image", "src": "media/IMG_3022.JPEG"}, {"type": "image", "src": "media/IMG_3023.JPEG"}, {"type": "image", "src": "media/IMG_3024.JPEG"}, {"type": "video", "src": "media/IMG_3025.MP4"}, {"type": "video", "src": "media/IMG_3026.MP4"}, {"type": "video", "src": "media/IMG_3027.MP4"}, {"type": "video", "src": "media/IMG_3028.MP4"}, {"type": "video", "src": "media/IMG_3029.MP4"}, {"type": "video", "src": "media/IMG_3030.MP4"}, {"type": "video", "src": "media/IMG_3031.MP4"}, {"type": "image", "src": "media/IMG_3032.JPEG"}, {"type": "video", "src": "media/IMG_3033.MP4"}, {"type": "video", "src": "media/IMG_3034.MP4"}, {"type": "video", "src": "media/IMG_3035.MP4"}, {"type": "video", "src": "media/IMG_3036.MP4"}, {"type": "image", "src": "media/IMG_3037.JPEG"}, {"type": "image", "src": "media/IMG_3038.JPEG"}, {"type": "video", "src": "media/IMG_3039.MP4"}, {"type": "video", "src": "media/IMG_3040.MP4"}, {"type": "video", "src": "media/IMG_3041.MP4"}, {"type": "video", "src": "media/IMG_3042.MP4"}, {"type": "image", "src": "media/IMG_3043.JPEG"}, {"type": "image", "src": "media/IMG_3044.JPEG"}, {"type": "image", "src": "media/IMG_3047-1.JPG"}, {"type": "image", "src": "media/IMG_3047.JPG"}, {"type": "image", "src": "media/IMG_3048-1.JPG"}, {"type": "image", "src": "media/IMG_3048.JPG"}, {"type": "image", "src": "media/IMG_3050.JPG"}, {"type": "image", "src": "media/IMG_3051.JPG"}, {"type": "video", "src": "media/IMG_3123.MP4"}, {"type": "video", "src": "media/IMG_3124.MP4"}, {"type": "video", "src": "media/IMG_3125.MP4"}, {"type": "video", "src": "media/IMG_3126.mp4"}, {"type": "video", "src": "media/IMG_3127.mp4"}, {"type": "video", "src": "media/IMG_3129.MP4"}, {"type": "video", "src": "media/IMG_3131.MP4"}, {"type": "video", "src": "media/IMG_3132.MP4"}, {"type": "video", "src": "media/IMG_3133.MP4"}, {"type": "video", "src": "media/IMG_3134.MP4"}, {"type": "video", "src": "media/IMG_3135.MP4"}, {"type": "video", "src": "media/IMG_3136.MP4"}, {"type": "video", "src": "media/IMG_3137.MP4"}, {"type": "video", "src": "media/IMG_3138.MP4"}, {"type": "video", "src": "media/IMG_3139.MP4"}, {"type": "video", "src": "media/IMG_3140.MP4"}, {"type": "video", "src": "media/IMG_3141.MP4"}, {"type": "video", "src": "media/IMG_3142.MP4"}, {"type": "video", "src": "media/IMG_3143.MP4"}, {"type": "video", "src": "media/IMG_3144.MP4"}, {"type": "video", "src": "media/IMG_3145.MP4"}, {"type": "video", "src": "media/IMG_3146.MP4"}, {"type": "image", "src": "media/IMG_3147.JPEG"}, {"type": "image", "src": "media/IMG_3148.JPEG"}, {"type": "image", "src": "media/IMG_3149.JPEG"}, {"type": "image", "src": "media/IMG_3150.JPEG"}, {"type": "image", "src": "media/IMG_3151.JPEG"}, {"type": "image", "src": "media/IMG_3152.JPEG"}, {"type": "image", "src": "media/IMG_3153.JPEG"}, {"type": "image", "src": "media/IMG_3154.JPEG"}, {"type": "image", "src": "media/IMG_3155.JPEG"}, {"type": "image", "src": "media/IMG_3156.JPEG"}, {"type": "image", "src": "media/IMG_3157.JPEG"}, {"type": "image", "src": "media/IMG_3158.JPEG"}, {"type": "image", "src": "media/IMG_3159.JPEG"}, {"type": "image", "src": "media/IMG_3160.JPEG"}, {"type": "image", "src": "media/IMG_3161.JPEG"}, {"type": "image", "src": "media/IMG_3162.JPEG"}, {"type": "image", "src": "media/IMG_3163.JPEG"}, {"type": "image", "src": "media/IMG_3164.JPEG"}, {"type": "image", "src": "media/IMG_3165.JPEG"}, {"type": "video", "src": "media/IMG_3166.MP4"}, {"type": "image", "src": "media/IMG_3167.JPEG"}, {"type": "image", "src": "media/IMG_3168.JPEG"}, {"type": "image", "src": "media/IMG_3169.JPEG"}, {"type": "video", "src": "media/IMG_3192.MP4"}, {"type": "image", "src": "media/IMG_3194.JPEG"}, {"type": "image", "src": "media/IMG_3195.JPEG"}, {"type": "image", "src": "media/IMG_3196.JPEG"}, {"type": "image", "src": "media/IMG_3197.JPEG"}, {"type": "image", "src": "media/IMG_3198.JPEG"}, {"type": "video", "src": "media/IMG_3199.MP4"}, {"type": "video", "src": "media/IMG_3200.MP4"}, {"type": "video", "src": "media/IMG_3201.MP4"}, {"type": "video", "src": "media/IMG_3202.MP4"}, {"type": "image", "src": "media/IMG_3323.JPEG"}, {"type": "image", "src": "media/IMG_3324.JPEG"}, {"type": "image", "src": "media/IMG_3325.JPEG"}, {"type": "image", "src": "media/IMG_3326.JPEG"}, {"type": "image", "src": "media/IMG_3327.JPEG"}, {"type": "image", "src": "media/IMG_3328.JPEG"}, {"type": "image", "src": "media/IMG_3329.JPEG"}, {"type": "image", "src": "media/IMG_3330.JPEG"}, {"type": "image", "src": "media/IMG_3331.JPEG"}, {"type": "image", "src": "media/IMG_3332.JPEG"}, {"type": "image", "src": "media/IMG_3333.JPEG"}, {"type": "image", "src": "media/IMG_3334.JPEG"}, {"type": "image", "src": "media/IMG_3335.JPEG"}, {"type": "image", "src": "media/IMG_3336.JPEG"}, {"type": "image", "src": "media/IMG_3337.JPEG"}, {"type": "image", "src": "media/IMG_3338.JPEG"}, {"type": "image", "src": "media/IMG_3339.JPEG"}, {"type": "image", "src": "media/IMG_3340.JPEG"}, {"type": "image", "src": "media/IMG_3341.JPEG"}, {"type": "image", "src": "media/IMG_3342.JPEG"}, {"type": "image", "src": "media/IMG_3343.JPEG"}, {"type": "image", "src": "media/IMG_3344.JPEG"}, {"type": "image", "src": "media/IMG_3345.JPEG"}, {"type": "image", "src": "media/IMG_3346.JPEG"}, {"type": "image", "src": "media/IMG_3347.JPEG"}, {"type": "video", "src": "media/IMG_3347.mp4"}, {"type": "image", "src": "media/IMG_3348.JPEG"}, {"type": "video", "src": "media/IMG_3348.mp4"}, {"type": "image", "src": "media/IMG_3349.JPEG"}, {"type": "video", "src": "media/IMG_3349.mp4"}, {"type": "image", "src": "media/IMG_3350.JPEG"}, {"type": "video", "src": "media/IMG_3350.mp4"}, {"type": "image", "src": "media/IMG_3351.JPEG"}, {"type": "video", "src": "media/IMG_3351.mp4"}, {"type": "image", "src": "media/IMG_3352.JPEG"}, {"type": "video", "src": "media/IMG_3352.mp4"}, {"type": "image", "src": "media/IMG_3353.JPEG"}, {"type": "video", "src": "media/IMG_3353.mp4"}, {"type": "image", "src": "media/IMG_3354.JPEG"}, {"type": "video", "src": "media/IMG_3354.mp4"}, {"type": "image", "src": "media/IMG_3355.JPEG"}, {"type": "video", "src": "media/IMG_3355.mp4"}, {"type": "image", "src": "media/IMG_3356.JPEG"}, {"type": "video", "src": "media/IMG_3356.mp4"}, {"type": "image", "src": "media/IMG_3357.JPEG"}, {"type": "video", "src": "media/IMG_3357.mp4"}, {"type": "image", "src": "media/IMG_3358.JPEG"}, {"type": "video", "src": "media/IMG_3358.mp4"}, {"type": "video", "src": "media/IMG_3359.MP4"}, {"type": "image", "src": "media/IMG_3416.PNG"}, {"type": "image", "src": "media/IMG_3417.PNG"}, {"type": "video", "src": "media/IMG_4108-1.MP4"}, {"type": "video", "src": "media/IMG_4108.MP4"}, {"type": "video", "src": "media/IMG_4111.MP4"}];
+
+    const gatePage = document.getElementById("gatePage");
+    const mainPage = document.getElementById("mainPage");
+    const anniversaryInput = document.getElementById("anniversaryInput");
+    const openBtn = document.getElementById("openBtn");
+    const errorMsg = document.getElementById("errorMsg");
+    const gallery = document.getElementById("gallery");
+
+    const lightbox = document.getElementById("lightbox");
+    const lightboxInner = document.getElementById("lightboxInner");
+    const closeBtn = document.getElementById("closeBtn");
+
+    const hearts = document.getElementById("hearts");
+    const stars = document.getElementById("stars");
+
+    function makeStars() {
+      for (let i = 0; i < 90; i++) {
+        const s = document.createElement("div");
+        s.className = "star";
+        s.style.left = Math.random() * 100 + "vw";
+        s.style.top = Math.random() * 100 + "vh";
+        s.style.animationDelay = (Math.random() * 3) + "s";
+        s.style.animationDuration = (2 + Math.random() * 4) + "s";
+        stars.appendChild(s);
+      }
+    }
+
+    function spawnHearts() {
+      setInterval(() => {
+        const heart = document.createElement("div");
+        heart.className = "heart";
+        heart.textContent = Math.random() > 0.5 ? "❤" : "♡";
+        heart.style.left = Math.random() * 100 + "vw";
+        heart.style.fontSize = (16 + Math.random() * 24) + "px";
+        heart.style.animationDuration = (6 + Math.random() * 6) + "s";
+        hearts.appendChild(heart);
+        setTimeout(() => heart.remove(), 13000);
+      }, 420);
+    }
+
+    function friendlyName(src) {
+      const name = src.split("/").pop() || "";
+      return name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
+    }
+
+    function buildGallery() {
+      gallery.innerHTML = "";
+
+      if (!mediaItems.length) {
+        gallery.innerHTML = '<div class="empty">No media found yet. Add files to your raw_media folder and run the Python script again.</div>';
+        return;
+      }
+
+      mediaItems.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.animationDelay = `${index * 0.05}s`;
+
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.textContent = item.type === "image" ? "Photo" : "Video";
+
+        const caption = document.createElement("div");
+        caption.className = "caption";
+        caption.innerHTML = `
+          <div class="name">${friendlyName(item.src)}</div>
+          <div class="type">${item.type}</div>
+        `;
+
+        if (item.type === "image") {
+          const img = document.createElement("img");
+          img.src = item.src;
+          img.alt = friendlyName(item.src);
+          img.loading = "lazy";
+          card.appendChild(img);
+        } else {
+          const video = document.createElement("video");
+          video.src = item.src;
+          video.preload = "metadata";
+          video.muted = true;
+          video.playsInline = true;
+          card.appendChild(video);
+        }
+
+        card.appendChild(badge);
+        card.appendChild(caption);
+        card.addEventListener("click", () => openLightbox(item));
+        gallery.appendChild(card);
+      });
+    }
+
+    function openLightbox(item) {
+      const old = lightboxInner.querySelector("img, video");
+      if (old) {
+        if (old.tagName === "VIDEO") old.pause();
+        old.remove();
+      }
+
+      let el;
+      if (item.type === "image") {
+        el = document.createElement("img");
+        el.src = item.src;
+        el.alt = friendlyName(item.src);
+      } else {
+        el = document.createElement("video");
+        el.src = item.src;
+        el.controls = true;
+        el.autoplay = true;
+        el.playsInline = true;
+      }
+
+      lightboxInner.appendChild(el);
+      lightbox.classList.add("active");
+    }
+
+    function closeLightbox() {
+      const old = lightboxInner.querySelector("video");
+      if (old) old.pause();
+      lightbox.classList.remove("active");
+    }
+
+    openBtn.addEventListener("click", () => {
+      const value = anniversaryInput.value.trim();
+      if (value === REQUIRED_DATE) {
+        errorMsg.textContent = "";
+        gatePage.classList.add("hidden");
+        mainPage.classList.remove("hidden");
+        buildGallery();
+      } else {
+        errorMsg.textContent = "Wrong anniversary date. Please try again.";
+      }
+    });
+
+    anniversaryInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") openBtn.click();
+    });
+
+    closeBtn.addEventListener("click", closeLightbox);
+
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    makeStars();
+    spawnHearts();
+  </script>
+</body>
+</html>
